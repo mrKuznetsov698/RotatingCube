@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../CanvasWithoutP5"
+		},
+		{
+			"path": "../../../sketchbook/point_selector"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "ImageDataTest"
+	}
+}
