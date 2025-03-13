@@ -5,7 +5,7 @@ let redrawTimerId = -1;
 const FPS = 10;
 let WIDTH = 640;
 let HEIGHT = 640;
-const K = 8;
+const K = 4;
 // const RATIO = 16/9;
 const W = toInt(WIDTH / K);
 const H = toInt(HEIGHT / K);
@@ -66,7 +66,7 @@ function init() {
 //         flag = false;
 //     }
 // }
-const shift = 0.5;
+const shift = 0.1;
 function keyHandler(ev) {
     if (ev.key == "ArrowUp") {
         ro.z += shift;
@@ -178,7 +178,28 @@ let vertexes = [
     vector(1, 0, 1),
 ];
 
-let ro = vector(-1, 0.5, -3);
+let ro = vector(2, 2, 8);
+
+// rotate p around o
+function rotate(p, o, phi, alpha) {
+    // phi - xy, alpha - zy
+    let v = p.subtract(o);
+    let x0 = v.x, y0 = v.y, z0 = v.z;
+    v.x = x0 * Math.cos(phi) - y0 * Math.sin(phi);
+    v.y = x0 * Math.sin(phi) + y0 * Math.cos(phi);
+
+    y0 = v.y;
+
+    v.z = z0 * Math.cos(alpha) - y0 * Math.sin(alpha);
+    v.y = z0 * Math.sin(alpha) + y0 * Math.cos(alpha);
+
+    return o.add(v);
+}
+
+let t = 0;
+
+const phi_t = (t) => (t * Math.PI / 30);
+const alpha_t = (t) => (t * Math.PI / 20);
 
 function redraw() {
     fill(BLACK);
@@ -186,7 +207,9 @@ function redraw() {
     let cube = [];
     
     vertexes.forEach((p) => {
-        p.add(vector(0.5, 0.5, 1));
+        p = rotate(p, vertexes[0], phi_t(t), alpha_t(t));
+        console.log(p);
+        p = p.add(vector(1.5, 1.5, 0.5)).multiply(0.3);
         let v = p.subtract(ro).normalize();
         v = v.multiply(-ro.z / v.z);
         v = ro.add(v);
@@ -196,21 +219,23 @@ function redraw() {
         cube.push({x: toInt(v.x * (W-1)), y: toInt(v.y * (H - 1))});    
     });
 
+    pline(cube[4], cube[5], RED);
+    pline(cube[5], cube[6], RED);
+    pline(cube[6], cube[7], RED);
+    pline(cube[7], cube[4], RED);
+
     pline(cube[0], cube[1], BLUE);
     pline(cube[1], cube[2], BLUE);
     pline(cube[2], cube[3], BLUE);
     pline(cube[3], cube[0], BLUE);
 
-    pline(cube[4], cube[5], BLUE);
-    pline(cube[5], cube[6], BLUE);
-    pline(cube[6], cube[7], BLUE);
-    pline(cube[7], cube[4], BLUE);
+    pline(cube[0], cube[4], CYAN);
+    pline(cube[1], cube[5], CYAN);
+    pline(cube[2], cube[6], CYAN);
+    pline(cube[3], cube[7], CYAN);
 
-    pline(cube[0], cube[4], BLUE);
-    pline(cube[1], cube[5], BLUE);
-    pline(cube[2], cube[6], BLUE);
-    pline(cube[3], cube[7], BLUE);
+    t++;
 
-    // clearInterval(redrawTimerId);
     ctx.putImageData(buffer, 0, 0);
+    // clearInterval(redrawTimerId);
 }
