@@ -3,8 +3,8 @@ let ctx;
 let redrawTimerId = -1;
 
 const FPS = 10;
-let WIDTH = 720;
-let HEIGHT = 720;
+let WIDTH = 640;
+let HEIGHT = 640;
 const K = 8;
 // const RATIO = 16/9;
 const W = toInt(WIDTH / K);
@@ -22,8 +22,6 @@ const
 
 let buffer = new ImageData(WIDTH, HEIGHT);  
 
-let campos;
-
 function init() {
     canvas = document.getElementById('mycanvas');
     // window.onkeydown = function(ev) {
@@ -38,6 +36,7 @@ function init() {
     // canvas.onmousedown = mouseDown;
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
+    window.onkeydown = keyHandler;
 
     campos = document.getElementById('camera_shower');
     
@@ -67,6 +66,24 @@ function init() {
 //         flag = false;
 //     }
 // }
+const shift = 0.5;
+function keyHandler(ev) {
+    if (ev.key == "ArrowUp") {
+        ro.z += shift;
+    } else if (ev.key == "ArrowDown") {
+        ro.z -= shift;
+    } else if (ev.key == "ArrowRight") {
+        ro.x += shift;
+    } else if (ev.key == "ArrowLeft") {
+        ro.x -= shift;
+    } else if (ev.key == "w") {
+        ro.y += shift;
+    } else if (ev.key == "s") {
+        ro.y -= shift;
+    }
+    console.log(ro);
+    redraw();
+}
 
 function setXY(x, y, color) {
     for (let _a = 0; _a < K; _a++) {
@@ -85,11 +102,20 @@ function fill(color) {
 }
 
 function _setXY(x, y, color) {
+    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
+        return;
+    }
     const ind = 4 * (x + y * WIDTH);
     buffer.data[ind] = (color >> 16) & 0xFF;
     buffer.data[ind + 1] = (color >> 8) & 0xFF;
     buffer.data[ind + 2] = (color) & 0xFF;
     buffer.data[ind + 3] = 255;
+}
+
+function pline(p1, p2, color) {
+    // setXY(p1.x, p1.y, BLUE);
+    // setXY(p2.x, p2.y, BLUE);
+    line(p1.x, p1.y, p2.x, p2.y, color);
 }
 
 function line(x0, y0, x1, y1, color) {
@@ -143,27 +169,48 @@ const point3 = (x, y, z) => new Point3(x, y, z);
 
 let vertexes = [
     vector(0, 0, 0),
-    vector(1, 0, 0),
     vector(0, 1, 0),
     vector(1, 1, 0),
+    vector(1, 0, 0),
     vector(0, 0, 1),
-    vector(1, 0, 1),
     vector(0, 1, 1),
     vector(1, 1, 1),
+    vector(1, 0, 1),
 ];
 
 let ro = vector(-1, 0.5, -3);
 
 function redraw() {
+    fill(BLACK);
+
+    let cube = [];
+    
     vertexes.forEach((p) => {
-        // p = p.add(vector(1, 1, 1));
+        p.add(vector(0.5, 0.5, 1));
         let v = p.subtract(ro).normalize();
         v = v.multiply(-ro.z / v.z);
         v = ro.add(v);
-        let [x, y] = [v.x, v.y];
-        console.log(x, y);
-        setXY(toInt((W - 1) * x), toInt((H - 1) * y), BLUE);
+        // if (v.x < 0 || v.x > 1 || v.y < 0 || v.y > 1) {
+            // return;
+        // }
+        cube.push({x: toInt(v.x * (W-1)), y: toInt(v.y * (H - 1))});    
     });
-    clearInterval(redrawTimerId);
+
+    pline(cube[0], cube[1], BLUE);
+    pline(cube[1], cube[2], BLUE);
+    pline(cube[2], cube[3], BLUE);
+    pline(cube[3], cube[0], BLUE);
+
+    pline(cube[4], cube[5], BLUE);
+    pline(cube[5], cube[6], BLUE);
+    pline(cube[6], cube[7], BLUE);
+    pline(cube[7], cube[4], BLUE);
+
+    pline(cube[0], cube[4], BLUE);
+    pline(cube[1], cube[5], BLUE);
+    pline(cube[2], cube[6], BLUE);
+    pline(cube[3], cube[7], BLUE);
+
+    // clearInterval(redrawTimerId);
     ctx.putImageData(buffer, 0, 0);
 }
