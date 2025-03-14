@@ -2,7 +2,7 @@ let canvas;
 let ctx;
 let redrawTimerId = -1;
 
-const FPS = 10;
+const FPS = 30;
 let WIDTH = 640;
 let HEIGHT = 640;
 const K = 4;
@@ -178,7 +178,7 @@ let vertexes = [
     vector(1, 0, 1),
 ];
 
-let ro = vector(2, 2, 8);
+let ro = vector(0.5, 0.5, -8);
 
 // rotate p around o
 function rotate(p, o, phi, alpha) {
@@ -198,8 +198,13 @@ function rotate(p, o, phi, alpha) {
 
 let t = 0;
 
-const phi_t = (t) => (t * Math.PI / 30);
-const alpha_t = (t) => (t * Math.PI / 20);
+const phi_t = (t) => (t * (0.5 * Math.PI / FPS));
+const alpha_t = (t) => (t * (0.4 * Math.PI / FPS));
+
+// const phi_t = (t) => 0;
+// const alpha_t = (t) => 0;
+
+const cube_scale = 0.5;
 
 function redraw() {
     fill(BLACK);
@@ -207,9 +212,9 @@ function redraw() {
     let cube = [];
     
     vertexes.forEach((p) => {
-        p = rotate(p, vertexes[0], phi_t(t), alpha_t(t));
+        p = rotate(p, vector(0.5, 0.5, 0.5), phi_t(t), alpha_t(t));
         console.log(p);
-        p = p.add(vector(1.5, 1.5, 0.5)).multiply(0.3);
+        p = p.multiply(cube_scale).add(vector((1 - cube_scale) / 2, (1 - cube_scale) / 2, 0));
         let v = p.subtract(ro).normalize();
         v = v.multiply(-ro.z / v.z);
         v = ro.add(v);
